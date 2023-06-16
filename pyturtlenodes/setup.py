@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
                 'imu_reader = pyturtlenodes.imu_reader:main',
+                'bag_record = pyturtlenodes.bag_record:main',
         ],
 },
 )
