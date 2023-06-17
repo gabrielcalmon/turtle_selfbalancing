@@ -5,9 +5,11 @@ import std_msgs.msg
 import geometry_msgs.msg
 
 import math, time
+import csv
+import datetime
 
 
-class ImuCustomNode(Node):
+class BagRecordNode(Node):
 
     def __init__(self):
         super().__init__('bag_recorder_node')
@@ -32,6 +34,8 @@ class ImuCustomNode(Node):
         timer_period = 0.05  # periodo de amostragem (1/20hz = 0.05s)
         self.timer = self.create_timer(timer_period, self.record_csv)
         self.i = 0
+
+        self.filename = 'cmd_vel_imu_{}.csv'.format(datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))  # cria um nome unico para cada nova execucao no diretorio especificado
 
 
     def imu_callback(self, data):
@@ -67,29 +71,29 @@ class ImuCustomNode(Node):
         return [roll_x, pitch_y, yaw_z] # in radians
 
 
-def record_csv(self):
-    pass
-    rclpy.loginfo(rclpy.get_caller_id() + "I heard %s", data)
-    # Abre o arquivo CSV e adiciona uma nova linha com os dados atuais
-    with open(filename, mode='a') as csv_file:
-        writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    def record_csv(self):
+        pass
+        # rclpy.loginfo(rclpy.get_caller_id() + "I heard %s", data)
+        # Abre o arquivo CSV e adiciona uma nova linha com os dados atuais
+        with open(self.filename, mode='a') as csv_file:
+            writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-        # cria o cabecalho do csv CASO o arquivo esteja vazio
-        if csv_file.tell() == 0:
-            writer.writerow(['time', 'pos_1', 'pos_2', 'pos_3', 'pos_4', 'pos_5', 'pos_6', 'vel_1', 'vel_2', 'vel_3', 'vel_4', 'vel_5', 'vel_6', 'eff_1', 'eff_2', 'eff_3', 'eff_4', 'eff_5', 'eff_6'])
-        #write_list=list(data.position) + list(data.velocity) + list(data.effort)
-        #formattedList = [data.header.stamp.to_sec()] + [f'%.{float_precision}f' % x for x in write_list]
-        
-        # concatena os dados da mensagem numa lista
-        formattedList = [data.header.stamp.to_sec()] + list(data.position) + list(data.velocity) + list(data.effort)
-        #formattedList = map(float, formattedList)
-        writer.writerow(formattedList)
+            # cria o cabecalho do csv CASO o arquivo esteja vazio
+            if csv_file.tell() == 0:
+                writer.writerow(['velocity', 'angle'])
+            #write_list=list(data.position) + list(data.velocity) + list(data.effort)
+            #formattedList = [data.header.stamp.to_sec()] + [f'%.{float_precision}f' % x for x in write_list]
+            
+            # concatena os dados da mensagem numa lista
+            formattedList = [self.vel, self.euler[0]]
+            #formattedList = map(float, formattedList)
+            writer.writerow(formattedList)
 
 
 def main(args=None):
     rclpy.init(args=args)
 
-    bag_node = ImuCustomNode()
+    bag_node = BagRecordNode()
 
     rclpy.spin(bag_node)
 
